@@ -8,7 +8,11 @@
 namespace bookdb {
 
 template <typename T>
-concept BookContainerLike = true;
+concept BookContainerLike = requires (T t)
+{
+  std::begin(t);
+  std::end(t);
+};
 
 template <typename T>
 concept BookIterator = true;
