@@ -16,8 +16,6 @@ enum class Genre
   , Unknown
 };
 
-// Ваш код для constexpr преобразования строк в enum::Genre и наоборот здесь
-
 // FYI: https://ru.wikipedia.org/wiki/FNV
 
 // Simple FNV-1a hash function (must be constexpr)
@@ -61,20 +59,24 @@ constexpr Genre GenreFromString(std::string_view s)
 struct Book {
   // string_view для экономии памяти, чтобы ссылаться на оригинальную строку,
   // хранящуюся в другом контейнере.
-  std::string_view Author;
+  // std::string_view Author;
+
+  std::string Author;
   std::string Title;
 
-  int Year;
-  Genre Genre_;
-  double Rating;
-  int ReadCount;
+  uint64_t Year = 1970;
+  Genre Genre_ = Genre::Unknown;
+  double Rating = 0.0;
+  uint64_t ReadCount = 0;
 
-  constexpr Book(const std::string& title,
-                 const std::string& author,
-                 const int year,
+  // NOTE: not really a constexpr - falls back to runtime
+  // because of std::string Title.
+  constexpr Book(const char* title,
+                 const char* author,
+                 const uint64_t year,
                  const Genre genre,
                  const double rating,
-                 const int readCount)
+                 const uint64_t readCount)
     : Author(author),
       Title(title),
       Year(year),
@@ -82,12 +84,12 @@ struct Book {
       Rating(rating),
       ReadCount(readCount) {}
 
-  constexpr Book(const std::string& title,
-                 const std::string& author,
-                 const int year,
-                 const std::string& genre,
+  constexpr Book(const char* title,
+                 const char* author,
+                 const uint64_t year,
+                 const char* genre,
                  const double rating,
-                 const int readCount)
+                 const uint64_t readCount)
     : Author(author),
       Title(title),
       Year(year),
@@ -98,36 +100,67 @@ struct Book {
 }  // namespace bookdb
 
 namespace std {
+
 template <>
-struct formatter<bookdb::Genre, char> {
-    template <typename FormatContext>
-    auto format(const bookdb::Genre g, FormatContext &fc) const
-    {
-      std::string genre_str;
+struct formatter<bookdb::Genre, char>
+{
+  template <typename FormatContext>
+  auto format(const bookdb::Genre g, FormatContext& fc) const
+  {
+    std::string genre_str;
 
-      // clang-format off
-      using bookdb::Genre;
-      switch (g)
-      {
-        case Genre::Fiction:    genre_str = "Fiction";    break;
-        case Genre::Mystery:    genre_str = "Mystery";    break;
-        case Genre::NonFiction: genre_str = "NonFiction"; break;
-        case Genre::SciFi:      genre_str = "SciFi";      break;
-        case Genre::Biography:  genre_str = "Biography";  break;
-        case Genre::Unknown:    genre_str = "Unknown";    break;
-        default:
-            throw logic_error{"Unsupported bookdb::Genre"};
-        }
-      // clang-format on
-      return format_to(fc.out(), "{}", genre_str);
-    }
-
-    constexpr auto parse(format_parse_context &ctx)
+    // clang-format off
+    using bookdb::Genre;
+    switch (g)
     {
-        return ctx.begin();  // Просто игнорируем пользовательский формат
-    }
+      case Genre::Fiction:    genre_str = "Fiction";    break;
+      case Genre::Mystery:    genre_str = "Mystery";    break;
+      case Genre::NonFiction: genre_str = "NonFiction"; break;
+      case Genre::SciFi:      genre_str = "SciFi";      break;
+      case Genre::Biography:  genre_str = "Biography";  break;
+      case Genre::Unknown:    genre_str = "Unknown";    break;
+      default:
+          throw logic_error{"Unsupported bookdb::Genre"};
+      }
+    // clang-format on
+    return format_to(fc.out(), "{}", genre_str);
+  }
+
+  constexpr auto parse(format_parse_context& ctx)
+  {
+    return ctx.begin();  // Просто игнорируем пользовательский формат
+  }
 };
 
-// Ваш код для std::formatter<Book> здесь
+template <>
+struct formatter<bookdb::Book>
+{
+  template <typename FormatContext>
+  auto format(const bookdb::Book& b, FormatContext& fc) const
+  {
+    return format_to(
+      fc.out(),
+R"({{
+  "Author" : "{}",
+  "Title" : "{}",
+  "Year" : {},
+  "Genre" : "{}",
+  "Rating" : {},
+  "ReadCount" : {}
+}}
+)",
+      b.Author,
+      b.Title,
+      b.Year,
+      b.Genre_,
+      b.Rating,
+      b.ReadCount);
+  }
+
+  constexpr auto parse(format_parse_context& ctx)
+  {
+    return ctx.begin();
+  }
+};
 
 }  // namespace std
