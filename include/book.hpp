@@ -59,24 +59,22 @@ constexpr Genre GenreFromString(std::string_view s)
 struct Book {
   // string_view для экономии памяти, чтобы ссылаться на оригинальную строку,
   // хранящуюся в другом контейнере.
-  // std::string_view Author;
-
-  std::string Author;
+  std::string_view Author;
   std::string Title;
 
-  uint64_t Year = 1970;
+  size_t Year = 1970;
   Genre Genre_ = Genre::Unknown;
   double Rating = 0.0;
-  uint64_t ReadCount = 0;
+  size_t ReadCount = 0;
 
-  // NOTE: not really a constexpr - falls back to runtime
-  // because of std::string Title.
-  constexpr Book(const char* title,
-                 const char* author,
-                 const uint64_t year,
+  // NOTE: not actually a constexpr - falls back to runtime
+  // because of std::string.
+  constexpr Book(const std::string& title,
+                 const std::string_view author,
+                 const size_t year,
                  const Genre genre,
                  const double rating,
-                 const uint64_t readCount)
+                 const size_t readCount)
     : Author(author),
       Title(title),
       Year(year),
@@ -84,12 +82,12 @@ struct Book {
       Rating(rating),
       ReadCount(readCount) {}
 
-  constexpr Book(const char* title,
-                 const char* author,
-                 const uint64_t year,
-                 const char* genre,
+  constexpr Book(const std::string& title,
+                 const std::string_view author,
+                 const size_t year,
+                 const std::string_view genre,
                  const double rating,
-                 const uint64_t readCount)
+                 const size_t readCount)
     : Author(author),
       Title(title),
       Year(year),
@@ -147,8 +145,7 @@ R"({{
   "Genre" : "{}",
   "Rating" : {},
   "ReadCount" : {}
-}}
-)",
+}})",
       b.Author,
       b.Title,
       b.Year,

@@ -57,25 +57,7 @@ R"({
   "Genre" : "SciFi",
   "Rating" : 4,
   "ReadCount" : 190
-}
-)";
+})";
     EXPECT_EQ(expected, actual);
   }
-}
-
-// =============================================================================
-
-TEST(BookDatabase, IntializerList)
-{
-  BookDatabase bd(
-    {
-      { "1984", "George Orwell", 1949, Genre::SciFi, 4., 190 },
-      { "Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143 }
-    }
-  );
-
-  ASSERT_FALSE(bd.empty());
-  ASSERT_EQ(2, bd.size());
-  EXPECT_EQ("1984", bd[0].Title);
-  EXPECT_EQ("Animal Farm", bd[1].Title);
 }

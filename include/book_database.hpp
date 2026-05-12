@@ -19,8 +19,9 @@ public:
     using AuthorContainer = std::unordered_set<std::string>;
 
     BookDatabase() = default;
-    BookDatabase(std::initializer_list<Book> books)
-      : books_(books) {}
+
+    // Опционально.
+    // BookDatabase(std::initializer_list<Book> books);
 
     void clear()
     {
@@ -32,33 +33,48 @@ public:
     bool empty() const { return books_.empty(); }
     size_t size() const { return books_.size(); }
 
-    Book& operator[](const size_t index)
+    Book& operator[](const size_t index) { return books_[index]; }
+
+    auto begin() { return books_.begin(); }
+    auto end() { return books_.end(); }
+
+    // Опционально.
+    //template <typename... Args>
+    //  requires std::constructible_from<Book, Args...>
+    //  void EmplaceBack(Args &&...args);
+
+    void PushBack(const Book& book)
     {
-      return books_[index];
+      // What's the point if author should already be set in Book object?
+      authors_.insert(std::string(book.Author.data(), book.Author.size()));
+      books_.push_back(book);
     }
 
-    void EmplaceBack(const char* title,
-                     const char* author,
-                     const uint64_t year,
-                     const Genre genre,
-                     const double rating,
-                     const uint64_t readCount)
+    void PushBack(Book&& book)
     {
-      books_.emplace_back(Book{ title, author, year, genre, rating, readCount });
+      authors_.insert(std::string(book.Author.data(), book.Author.size()));
+      books_.push_back(std::move(book));
     }
 
-    void EmplaceBack(const char* title,
-                     const char* author,
-                     const uint64_t year,
-                     const char* genre,
-                     const double rating,
-                     const uint64_t readCount)
+    std::span<const Book> GetBooks() const
     {
-      books_.emplace_back(Book{ title, author, year, genre, rating, readCount });
+      return books_;
     }
 
-    const BookContainer& GetBooks() const { return books_; }
-    const AuthorContainer& GetAuthors() const { return authors_; }
+    std::span<Book> GetBooks()
+    {
+      return books_;
+    }
+
+    const AuthorContainer& GetAuthors() const
+    {
+      return authors_;
+    }
+
+    const AuthorContainer& GetAuthors()
+    {
+      return authors_;
+    }
 
 private:
     BookContainer books_;
@@ -77,13 +93,21 @@ struct formatter<bookdb::BookDatabase<std::vector<bookdb::Book>>> {
       format_to(fc.out(), "BookDatabase (size = {}): ", db.size());
 
       format_to(fc.out(), "Books:\n");
+
+      bool first = true;
       for (const bookdb::Book& book : db.GetBooks())
       {
-        format_to(fc.out(), "- {}\n", book);
+        if (not first)
+        {
+          format_to(fc.out(), ",\n");
+        }
+
+        format_to(fc.out(), "{}", book);
+        first = false;
       }
 
-      format_to(fc.out(), "Authors:\n");
-      for (const auto &author : db.GetAuthors())
+      format_to(fc.out(), "\nAuthors:\n");
+      for (const auto& author : db.GetAuthors())
       {
         format_to(fc.out(), "- {}\n", author);
       }
