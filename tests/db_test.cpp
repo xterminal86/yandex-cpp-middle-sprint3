@@ -2,6 +2,7 @@
 #include <print>
 
 #include "book_database.hpp"
+#include "statsistics.hpp"
 
 using namespace bookdb;
 
@@ -60,4 +61,30 @@ R"({
 })";
     EXPECT_EQ(expected, actual);
   }
+}
+
+// =============================================================================
+
+TEST(Statistics, Histogram)
+{
+  BookDatabase db;
+
+  db.PushBack(Book{"1984", "George Orwell", 1949, Genre::SciFi, 4., 190});
+  db.PushBack(Book{"Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143});
+  db.PushBack(Book{"The Great Gatsby", "F. Scott Fitzgerald", 1925, Genre::Fiction, 4.5, 120});
+  db.PushBack(Book{"To Kill a Mockingbird", "Harper Lee", 1960, Genre::Fiction, 4.8, 156});
+  db.PushBack(Book{"Pride and Prejudice", "Jane Austen", 1813, Genre::Fiction, 4.7, 178});
+  db.PushBack(Book{"The Catcher in the Rye", "J.D. Salinger", 1951, Genre::Fiction, 4.3, 112});
+  db.PushBack(Book{"Brave New World", "Aldous Huxley", 1932, Genre::SciFi, 4.5, 98});
+  db.PushBack(Book{"Jane Eyre", "Charlotte Brontë", 1847, Genre::Fiction, 4.6, 110});
+  db.PushBack(Book{"The Hobbit", "J.R.R. Tolkien", 1937, Genre::Fiction, 4.9, 203});
+  db.PushBack(Book{"Lord of the Flies", "William Golding", 1954, Genre::Fiction, 4.2, 89});
+
+  auto histogram = buildAuthorHistogramFlat(db);
+  std::string actual = std::format("{}", histogram);
+
+  const std::string expected =
+R"({ "Aldous Huxley" : 1, "Charlotte Brontë" : 1, "F. Scott Fitzgerald" : 1, "George Orwell" : 2, "Harper Lee" : 1, "J.D. Salinger" : 1, "J.R.R. Tolkien" : 1, "Jane Austen" : 1, "William Golding" : 1 })";
+
+  EXPECT_EQ(expected, actual);
 }
