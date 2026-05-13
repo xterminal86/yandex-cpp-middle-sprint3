@@ -28,7 +28,7 @@ struct LessByYear
   }
 };
 
-struct LessByPopularity
+struct LessByRating
 {
   bool operator()(const bookdb::Book& a, const bookdb::Book& b) const
   {
@@ -36,7 +36,7 @@ struct LessByPopularity
   }
 };
 
-struct LessByReadCount
+struct LessByPopularity
 {
   bool operator()(const bookdb::Book& a, const bookdb::Book& b) const
   {

@@ -8,9 +8,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-fmax-errors=1)
-else()
-    add_compile_options(-Wfatal-errors)
 endif()
+
+add_compile_options(-Wfatal-errors)
+add_compile_options(-Werror=return-type)
 
 # Ищем необходимые библиотеки
 find_package(GTest REQUIRED)

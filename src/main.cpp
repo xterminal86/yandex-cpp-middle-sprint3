@@ -57,14 +57,22 @@ int main() {
     /*
     // Filters
     auto filtered = filterBooks(db.begin(), db.end(), all_of(YearBetween(1900, 1999), RatingAbove(4.5)));
-    std::print("\n\nBooks from the 20th century with rating ≥ 4.5:\n");
+    std::print("6) Books from the 20th century with rating ≥ 4.5:\n");
     std::for_each(filtered.cbegin(), filtered.cend(), [](const auto &v) { std::print("{}\n", v.get()); });
+    */
 
     // Top 3 books
     auto topBooks = getTopNBy(db, 3, comp::LessByRating{});
-    std::print("\n\nTop 3 books by rating:\n");
-    std::for_each(topBooks.cbegin(), topBooks.cend(), [](const auto &v) { std::print("{}\n", v.get()); });
-    */
+    std::print("7) Top 3 books by rating:\n");
+    std::for_each(
+      topBooks.cbegin(),
+      topBooks.cend(),
+      [](const Book& b)
+      {
+        std::println("{}", b);
+      }
+    );
+    std::println("{}", line);
 
     auto orwellBookIt = std::find_if(
       db.begin(),

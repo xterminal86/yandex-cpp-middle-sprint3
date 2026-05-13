@@ -1,10 +1,12 @@
 #pragma once
 
+#include <iostream>
 #include <algorithm>
 #include <iterator>
 #include <random>
 #include <stdexcept>
 #include <string_view>
+#include <random>
 
 #include "book_database.hpp"
 
@@ -63,6 +65,7 @@ GenreRatings calculateGenreRatings(It first, Sent last)
   return out;
 }
 
+// =============================================================================
 
 template <BookContainerLike T>
 double calculateAverageRating(const BookDatabase<T>& books)
@@ -78,13 +81,43 @@ double calculateAverageRating(const BookDatabase<T>& books)
   ) / (double)books.size();
 }
 
-/*
+// =============================================================================
+
 template <BookContainerLike T>
-auto sampleRandomBooks(const BookDatabase<T> &cont, size_t num);
+auto sampleRandomBooks(const BookDatabase<T>& cont, size_t num)
+{
+  std::vector<Book> res;
+
+  if (num > cont.size())
+  {
+    std::cerr << "Requested range (" << num << ") "
+              << "is greater than the amount of books in database "
+              << "(" << cont.size() << "). "
+              << "Returning empty result."
+              << "\n";
+    return res;
+  }
+
+  std::sample(
+    cont.cbegin(),
+    cont.cend(),
+    std::back_inserter(res),
+    num,
+    std::mt19937_64(std::random_device{}())
+  );
+
+  return res;
+}
+
+// =============================================================================
 
 template <BookContainerLike T, typename Comparator>
-auto getTopNBy(BookDatabase<T> &cont, size_t n, Comparator comp);
-*/
+auto getTopNBy(BookDatabase<T> &cont, size_t n, Comparator comp)
+{
+  std::vector<Book> out;
+
+  return out;
+}
 
 }  // namespace bookdb
 
@@ -97,21 +130,25 @@ struct formatter<bookdb::Histogram> {
     template <typename FormatContext>
     auto format(const bookdb::Histogram& h, FormatContext& fc) const
     {
-      format_to(fc.out(), "{{ ");
+      format_to(fc.out(), "{{\n");
 
       bool first = true;
       for (const auto& kvp : h)
       {
         if (not first)
         {
-          format_to(fc.out(), ", ");
+          format_to(fc.out(), ",\n");
+        }
+        else
+        {
+          format_to(fc.out(), "\n");
         }
 
-        format_to(fc.out(), "\"{}\" : {}", kvp.first, kvp.second);
+        format_to(fc.out(), "  \"{}\" : {}", kvp.first, kvp.second);
         first = false;
       }
 
-      format_to(fc.out(), " }}");
+      format_to(fc.out(), "\n}}");
 
       return fc.out();
     }
@@ -129,21 +166,25 @@ struct formatter<bookdb::GenreRatings> {
     template <typename FormatContext>
     auto format(const bookdb::GenreRatings& gr, FormatContext& fc) const
     {
-      format_to(fc.out(), "{{ ");
+      format_to(fc.out(), "{{\n");
 
       bool first = true;
       for (const auto& kvp : gr)
       {
         if (not first)
         {
-          format_to(fc.out(), ", ");
+          format_to(fc.out(), ",\n");
+        }
+        else
+        {
+          format_to(fc.out(), "\n");
         }
 
-        format_to(fc.out(), "\"{}\" : {}", kvp.first, kvp.second);
+        format_to(fc.out(), "  \"{}\" : {}", kvp.first, kvp.second);
         first = false;
       }
 
-      format_to(fc.out(), " }}");
+      format_to(fc.out(), "\n}}");
 
       return fc.out();
     }
