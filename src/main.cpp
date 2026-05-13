@@ -8,6 +8,8 @@
 using namespace bookdb;
 
 int main() {
+    const std::string line(80, '=');
+
     //
     // Ниже приведён пример работы `BookDatabase`.
     //
@@ -32,29 +34,27 @@ int main() {
     db.PushBack(Book{"Jane Eyre", "Charlotte Brontë", 1847, Genre::Fiction, 4.6, 110});
     db.PushBack(Book{"The Hobbit", "J.R.R. Tolkien", 1937, Genre::Fiction, 4.9, 203});
     db.PushBack(Book{"Lord of the Flies", "William Golding", 1954, Genre::Fiction, 4.2, 89});
-    std::print("Books: {}\n\n", db);
-
-    const std::string line(80, '=');
+    std::print("0) {}\n{}\n", db, line);
 
     // Sorts
     std::sort(db.begin(), db.end(), comp::LessByAuthor{});
-    std::print("Books sorted by author: {}\n\n{}\n", db, line);
+    std::print("1) Books sorted by author:\n{}\n{}\n", db, line);
 
     std::sort(db.begin(), db.end(), comp::LessByPopularity{});
-    std::print("Books sorted by popularity: {}\n\n{}\n", db, line);
+    std::print("2) Books sorted by popularity:\n{}\n{}\n", db, line);
 
     // Author histogram
     auto histogram = buildAuthorHistogramFlat(db);
-    std::println("Author histogram: {}", histogram);
+    std::println("3) Author histogram:\n{}\n{}\n", histogram, line);
 
     // Ratings
     auto genreRatings = calculateGenreRatings(db.begin(), db.end());
-    std::print("\n\nAverage ratings by genres: {}\n", genreRatings);
+    std::print("4) Average ratings by genres:\n{}\n{}\n", genreRatings, line);
+
+    double avrRating = calculateAverageRating(db);
+    std::print("5) Average books rating in library:\n{}\n{}\n", avrRating, line);
 
     /*
-    auto avrRating = calculateAverageRating(db);
-    std::print("Average books rating in library: {}\n", avrRating);
-
     // Filters
     auto filtered = filterBooks(db.begin(), db.end(), all_of(YearBetween(1900, 1999), RatingAbove(4.5)));
     std::print("\n\nBooks from the 20th century with rating ≥ 4.5:\n");
@@ -64,12 +64,24 @@ int main() {
     auto topBooks = getTopNBy(db, 3, comp::LessByRating{});
     std::print("\n\nTop 3 books by rating:\n");
     std::for_each(topBooks.cbegin(), topBooks.cend(), [](const auto &v) { std::print("{}\n", v.get()); });
-
-    auto orwellBookIt = std::find_if(db.begin(), db.end(), [](const auto &v) { return v.author == "George Orwell"; });
-    if (orwellBookIt != db.end()) {
-        std::print("\n\nTransparent lookup by authors. Found Orwell's book: {}\n", *orwellBookIt);
-    }
     */
+
+    auto orwellBookIt = std::find_if(
+      db.begin(),
+      db.end(),
+      [](const Book& v)
+      {
+        return v.Author == "George Orwell";
+      }
+    );
+
+    if (orwellBookIt != db.end()) {
+      std::print(
+        "8) Transparent lookup by authors. Found Orwell's book:\n{}\n{}\n",
+        *orwellBookIt,
+        line
+      );
+    }
 
     return 0;
 }

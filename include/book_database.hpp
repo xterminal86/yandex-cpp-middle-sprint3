@@ -35,8 +35,10 @@ public:
 
     Book& operator[](const size_t index) { return books_[index]; }
 
-    auto begin() { return books_.begin(); }
-    auto end() { return books_.end(); }
+    auto begin()        { return books_.begin();  }
+    auto end()          { return books_.end();    }
+    auto cbegin() const { return books_.cbegin(); }
+    auto cend()   const { return books_.cend();   }
 
     // Опционально.
     //template <typename... Args>
@@ -52,7 +54,10 @@ public:
 
     void PushBack(Book&& book)
     {
-      authors_.insert(std::string(book.Author.data(), book.Author.size()));
+      auto p = authors_.insert(
+        std::string(book.Author.data(), book.Author.size())
+      );
+      book.Author = *p.first;
       books_.push_back(std::move(book));
     }
 
@@ -90,9 +95,9 @@ struct formatter<bookdb::BookDatabase<std::vector<bookdb::Book>>> {
     auto format(const bookdb::BookDatabase<std::vector<bookdb::Book>>& db,
                 FormatContext& fc) const
     {
-      format_to(fc.out(), "BookDatabase (size = {}): ", db.size());
+      format_to(fc.out(), "BookDatabase (size = {}), ", db.size());
 
-      format_to(fc.out(), "Books:\n");
+      format_to(fc.out(), "books:\n");
 
       bool first = true;
       for (const bookdb::Book& book : db.GetBooks())

@@ -13,6 +13,8 @@
 
 namespace bookdb {
 
+// =============================================================================
+
 using Histogram = std::flat_map<std::string, size_t>;
 
 template <BookContainerLike T, typename Comparator = TransparentStringLess>
@@ -30,40 +32,53 @@ Histogram buildAuthorHistogramFlat(const BookDatabase<T>& cont, Comparator comp 
   return stats;
 }
 
+// =============================================================================
+
+using GenreRatings = std::flat_map<Genre, double>;
+
 template <BookIterator It, BookSentinel<It> Sent>
-auto calculateGenreRatings(It first, Sent last)
+GenreRatings calculateGenreRatings(It first, Sent last)
 {
-  Histogram ratingsSumByGenre;
+  GenreRatings out;
 
-  for (const Book& i : s)
+  std::unordered_map<Genre, std::pair<double, size_t>> ratingsSumByGenre;
+
+  while (first != last)
   {
-    ratingsSumByGenre[std::string(i.Genre)] += i.Rating;
+    // Nice shortcut.
+    auto& [sum, count] = ratingsSumByGenre[first->Genre_];
+    sum += first->Rating;
+    count++;
+    first = std::next(first);
   }
-
-  Histogram out;
 
   for (const auto& kvp : ratingsSumByGenre)
   {
-    size_t cnt = std::count_if(
-      ratingsSumByGenre.begin(),
-      ratingsSumByGenre.end(),
-      [&kvp](const auto& p)
-      {
-        return kvp.first == p.first;
-      }
-    );
+    const double ratingSum  = kvp.second.first;
+    const double totalCount = (double)kvp.second.second;
 
-    out[kvp.first] = (double)kvp.second / (double)cnt;
+    out.insert_or_assign(kvp.first, ratingSum / totalCount);
   }
 
   return out;
 }
 
 
-/*
 template <BookContainerLike T>
-double calculateAverageRating(const BookDatabase<T> &books);
+double calculateAverageRating(const BookDatabase<T>& books)
+{
+  return std::accumulate(
+    books.cbegin(),
+    books.cend(),
+    0.0,
+    [](double sum, const Book& b)
+    {
+      return sum + b.Rating;
+    }
+  ) / (double)books.size();
+}
 
+/*
 template <BookContainerLike T>
 auto sampleRandomBooks(const BookDatabase<T> &cont, size_t num);
 
@@ -73,7 +88,10 @@ auto getTopNBy(BookDatabase<T> &cont, size_t n, Comparator comp);
 
 }  // namespace bookdb
 
+// =============================================================================
+
 namespace std {
+
 template <>
 struct formatter<bookdb::Histogram> {
     template <typename FormatContext>
@@ -103,4 +121,39 @@ struct formatter<bookdb::Histogram> {
       return ctx.begin();
     }
 };
+
+// -----------------------------------------------------------------------------
+
+template <>
+struct formatter<bookdb::GenreRatings> {
+    template <typename FormatContext>
+    auto format(const bookdb::GenreRatings& gr, FormatContext& fc) const
+    {
+      format_to(fc.out(), "{{ ");
+
+      bool first = true;
+      for (const auto& kvp : gr)
+      {
+        if (not first)
+        {
+          format_to(fc.out(), ", ");
+        }
+
+        format_to(fc.out(), "\"{}\" : {}", kvp.first, kvp.second);
+        first = false;
+      }
+
+      format_to(fc.out(), " }}");
+
+      return fc.out();
+    }
+
+    constexpr auto parse(format_parse_context &ctx)
+    {
+      return ctx.begin();
+    }
+};
+
 } // namespace std
+
+// =============================================================================
