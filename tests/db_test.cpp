@@ -10,7 +10,7 @@ using namespace std::string_view_literals;
 
 // =============================================================================
 
-void FillDatabase(/*Fucking bullshit*/BookDatabase<>& db)
+void FillDatabase(/*Fucking <> bullshit needed*/BookDatabase<>& db)
 {
   db.PushBack(Book{"1984", "George Orwell", 1949, Genre::SciFi, 4., 190});
   db.PushBack(Book{"Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143});
@@ -81,6 +81,39 @@ TEST(BookDatabase, EmplaceBack)
     )
   );
   EXPECT_EQ(3, filtered.size());
+}
+
+// =============================================================================
+
+TEST(BookDatabase, MemoryEfficiency)
+{
+  BookDatabase db;
+  db.EmplaceBack("Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143);
+  db.EmplaceBack("1984", "George Orwell", 1949, Genre::SciFi, 4., 190);
+
+  auto& authors = db.GetAuthors();
+  auto it1 = authors.find("George Orwell");
+  ASSERT_TRUE(it1 != authors.end());
+
+  // iterator -> holder object -> contents
+  const void* authorPtr = (const void*)(*it1).data();
+
+  std::span<const Book> s = db.GetBooks();
+  ASSERT_EQ(2, s.size());
+
+  const void* p1 = (const void*)s[0].Author.data();
+  const void* p2 = (const void*)s[1].Author.data();
+
+  // This would signify that Author in books_ container actually points to the
+  // same string in authors_ unordered set and is not a separate string or
+  // anything.
+  EXPECT_EQ(authorPtr, p1);
+  EXPECT_EQ(authorPtr, p2);
+
+  // We could repeat the same thing for one of the titles, but since it's
+  // implemented exactly the same as authors_ in code, and we don't have
+  // GetTitles() method, and we're kinda don't wanna implement it since it
+  // wasn't "part of the original deal", so just trust me bro. ;-)
 }
 
 // =============================================================================

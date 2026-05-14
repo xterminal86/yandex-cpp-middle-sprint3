@@ -68,7 +68,8 @@ struct Book {
   size_t ReadCount = 0;
 
   // We need exactly 'constexpr', not 'consteval' here if we plan to
-  // implement / use EmplaceBack(), because it only works in runtime.
+  // implement / use EmplaceBack(), because it only works in runtime, which is
+  // kinda doesn't make any sense.
   constexpr Book(const std::string_view title,
                  const std::string_view author,
                  const size_t year,

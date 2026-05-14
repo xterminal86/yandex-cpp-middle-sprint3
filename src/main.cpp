@@ -77,10 +77,10 @@ int main() {
     std::print("6) Books from the 20th century with rating ≥ 4.5:\n");
     std::for_each(filtered.cbegin(),
                   filtered.cend(),
-                  [](const auto &v)
+                  [](const auto& v)
                   {
                     // For some reason addresses don't match...
-                    // Though it seems to be working.
+                    // Though everything seems to be working.
                     std::print("{} -> @{}\n", v.get(), (void*)&v.get());
                   });
     std::println("{}", line);
