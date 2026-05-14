@@ -36,6 +36,8 @@ int main() {
     db.PushBack(Book{"Lord of the Flies", "William Golding", 1954, Genre::Fiction, 4.2, 89});
     std::print("0) {}\n{}\n", db, line);
 
+    // -------------------------------------------------------------------------
+
     // Sorts
     std::sort(db.begin(), db.end(), comp::LessByAuthor{});
     std::print("1) Books sorted by author:\n{}\n{}\n", db, line);
@@ -43,9 +45,13 @@ int main() {
     std::sort(db.begin(), db.end(), comp::LessByPopularity{});
     std::print("2) Books sorted by popularity:\n{}\n{}\n", db, line);
 
+    // -------------------------------------------------------------------------
+
     // Author histogram
     auto histogram = buildAuthorHistogramFlat(db);
     std::println("3) Author histogram:\n{}\n{}\n", histogram, line);
+
+    // -------------------------------------------------------------------------
 
     // Ratings
     auto genreRatings = calculateGenreRatings(db.begin(), db.end());
@@ -54,12 +60,23 @@ int main() {
     double avrRating = calculateAverageRating(db);
     std::print("5) Average books rating in library:\n{}\n{}\n", avrRating, line);
 
-    /*
+    // -------------------------------------------------------------------------
+
     // Filters
-    auto filtered = filterBooks(db.begin(), db.end(), all_of(YearBetween(1900, 1999), RatingAbove(4.5)));
+    auto filtered = filterBooks(db.begin(),
+                                db.end(),
+                                all_of(YearBetween(1900, 1999),
+                                       RatingAbove(4.5)));
     std::print("6) Books from the 20th century with rating ≥ 4.5:\n");
-    std::for_each(filtered.cbegin(), filtered.cend(), [](const auto &v) { std::print("{}\n", v.get()); });
-    */
+    std::for_each(filtered.cbegin(),
+                  filtered.cend(),
+                  [](const auto &v)
+                  {
+                    std::print("{}\n", v.get());
+                  });
+    std::println("{}", line);
+
+    // -------------------------------------------------------------------------
 
     // Top 3 books
     auto topBooks = getTopNBy(db, 3, comp::LessByRating{});
