@@ -20,7 +20,16 @@ struct TransparentStringLess
 
 // =============================================================================
 
-struct TransparentStringEqual {};
+struct TransparentStringEqual
+{
+  using is_transparent = void;
+
+  template <typename T, typename U>
+  bool operator()(const T& lhs, const U& rhs) const
+  {
+    return lhs == rhs;
+  }
+};
 
 // =============================================================================
 

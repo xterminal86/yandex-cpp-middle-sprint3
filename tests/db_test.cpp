@@ -28,35 +28,59 @@ void FillDatabase(/*Fucking bullshit*/BookDatabase<>& db)
 
 TEST(BookConstructor, ConstexprCheck)
 {
-  {
-    Book b("1984", "George Orwell", 1949, Genre::SciFi, 4., 190);
-    EXPECT_EQ("1984",          b.Title);
-    EXPECT_EQ("George Orwell", b.Author);
-    EXPECT_EQ(1949, b.Year);
-    EXPECT_EQ(Genre::SciFi, b.Genre_);
-    EXPECT_DOUBLE_EQ(4.0, b.Rating);
-    EXPECT_EQ(190, b.ReadCount);
-  }
-  // ---------------------------------------------------------------------------
-  {
-    Book b("1984", "George Orwell", 1949, "SciFi", 4., 190);
-    EXPECT_EQ("1984",          b.Title);
-    EXPECT_EQ("George Orwell", b.Author);
-    EXPECT_EQ(1949, b.Year);
-    EXPECT_EQ(Genre::SciFi, b.Genre_);
-    EXPECT_DOUBLE_EQ(4.0, b.Rating);
-    EXPECT_EQ(190, b.ReadCount);
-  }
-  // ---------------------------------------------------------------------------
-  {
-    Book b("Lolsus", "Don T. Beakunt", 100500, "Huj", 0.0001, 777);
-    EXPECT_EQ("Lolsus",         b.Title);
-    EXPECT_EQ("Don T. Beakunt", b.Author);
-    EXPECT_EQ(100500, b.Year);
-    EXPECT_EQ(Genre::Unknown, b.Genre_);
-    EXPECT_DOUBLE_EQ(0.0001, b.Rating);
-    EXPECT_EQ(777, b.ReadCount);
-  }
+  BookDatabase db(
+    {
+        { "1984", "George Orwell", 1949, Genre::SciFi, 4., 190 }
+      , { "Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143 }
+      , { "The Great Gatsby", "F. Scott Fitzgerald", 1925, Genre::Fiction, 4.5, 120 }
+      , {"To Kill a Mockingbird", "Harper Lee", 1960, Genre::Fiction, 4.8, 156 }
+      , {"Pride and Prejudice", "Jane Austen", 1813, Genre::Fiction, 4.7, 178 }
+      , {"The Catcher in the Rye", "J.D. Salinger", 1951, Genre::Fiction, 4.3, 112 }
+      , {"Brave New World", "Aldous Huxley", 1932, Genre::SciFi, 4.5, 98 }
+      , {"Jane Eyre", "Charlotte Brontë", 1847, Genre::Fiction, 4.6, 110 }
+      , {"The Hobbit", "J.R.R. Tolkien", 1937, Genre::Fiction, 4.9, 203 }
+      , {"Lord of the Flies", "William Golding", 1954, Genre::Fiction, 4.2, 89 }
+    }
+  );
+  db.Dump();
+  EXPECT_EQ(10, db.GetBooks().size());
+  auto filtered = filterBooks(
+    db.begin(),
+    db.end(),
+    all_of(
+      GenreIs(Genre::Fiction),
+      YearBetween(1925, 1950)
+    )
+  );
+  EXPECT_EQ(3, filtered.size());
+}
+
+// =============================================================================
+
+TEST(BookDatabase, EmplaceBack)
+{
+  BookDatabase db;
+  db.EmplaceBack("1984", "George Orwell", 1949, Genre::SciFi, 4., 190);
+  db.EmplaceBack("Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143);
+  db.EmplaceBack("The Great Gatsby", "F. Scott Fitzgerald", 1925, Genre::Fiction, 4.5, 120);
+  db.EmplaceBack("To Kill a Mockingbird", "Harper Lee", 1960, Genre::Fiction, 4.8, 156);
+  db.EmplaceBack("Pride and Prejudice", "Jane Austen", 1813, Genre::Fiction, 4.7, 178);
+  db.EmplaceBack("The Catcher in the Rye", "J.D. Salinger", 1951, Genre::Fiction, 4.3, 112);
+  db.EmplaceBack("Brave New World", "Aldous Huxley", 1932, Genre::SciFi, 4.5, 98);
+  db.EmplaceBack("Jane Eyre", "Charlotte Brontë", 1847, Genre::Fiction, 4.6, 110);
+  db.EmplaceBack("The Hobbit", "J.R.R. Tolkien", 1937, Genre::Fiction, 4.9, 203);
+  db.EmplaceBack("Lord of the Flies", "William Golding", 1954, Genre::Fiction, 4.2, 89);
+  db.Dump();
+  EXPECT_EQ(10, db.GetBooks().size());
+  auto filtered = filterBooks(
+    db.begin(),
+    db.end(),
+    all_of(
+      GenreIs(Genre::Fiction),
+      YearBetween(1925, 1950)
+    )
+  );
+  EXPECT_EQ(3, filtered.size());
 }
 
 // =============================================================================
@@ -158,6 +182,17 @@ TEST(BookDatabase, Filters)
       db.end(),
       any_of(
         AuthorIs("Сергей Пахомов")
+      )
+    );
+    EXPECT_TRUE(filtered.empty());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        RatingAbove(5.0)
       )
     );
     EXPECT_TRUE(filtered.empty());

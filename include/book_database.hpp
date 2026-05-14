@@ -20,8 +20,17 @@ public:
 
     BookDatabase() = default;
 
-    // Опционально.
-    // BookDatabase(std::initializer_list<Book> books);
+    BookDatabase(std::initializer_list<Book> books)
+      : books_(books)
+    {
+      for (Book& b : books_)
+      {
+        auto it1 = authors_.insert(std::string(b.Author.data(), b.Author.size()));
+        b.Author = *it1.first;
+        auto it2 = titles_.insert(std::string(b.Title.data(), b.Title.size()));
+        b.Title = *it2.first;
+      }
+    }
 
     void clear()
     {
@@ -40,10 +49,20 @@ public:
     auto cbegin() const { return books_.cbegin(); }
     auto cend()   const { return books_.cend();   }
 
-    // Опционально.
-    //template <typename... Args>
-    //  requires std::constructible_from<Book, Args...>
-    //  void EmplaceBack(Args &&...args);
+    template <typename... Args>
+    requires std::constructible_from<Book, Args...>
+    void EmplaceBack(Args&&... args)
+    {
+      Book& inserted = books_.emplace_back(std::forward<Args>(args)...);
+      auto it1 = authors_.insert(
+        std::string(inserted.Author.data(), inserted.Author.size())
+      );
+      auto it2 = titles_.insert(
+        std::string(inserted.Title.data(), inserted.Title.size())
+      );
+      inserted.Author = *it1.first;
+      inserted.Title  = *it2.first;
+    }
 
     void PushBack(const Book& book)
     {

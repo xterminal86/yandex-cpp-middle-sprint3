@@ -116,6 +116,26 @@ auto getTopNBy(BookDatabase<T> &cont, size_t n, Comparator comp)
 {
   std::vector<Book> out;
 
+  std::sort(
+    cont.begin(),
+    cont.end(),
+    [](const Book& a, const Book& b)
+    {
+      return a.Rating >= b.Rating;
+    }
+  );
+
+  size_t counter = 0;
+  for (auto& i : cont)
+  {
+    out.push_back(i);
+    counter++;
+    if (counter >= n)
+    {
+      break;
+    }
+  }
+
   return out;
 }
 

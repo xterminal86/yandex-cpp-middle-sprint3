@@ -67,8 +67,8 @@ struct Book {
   double Rating = 0.0;
   size_t ReadCount = 0;
 
-  // NOTE: not actually a constexpr - falls back to runtime
-  // because of std::string.
+  // We need exactly 'constexpr', not 'consteval' here if we plan to
+  // implement / use EmplaceBack(), because it only works in runtime.
   constexpr Book(const std::string_view title,
                  const std::string_view author,
                  const size_t year,

@@ -14,7 +14,7 @@ concept BookContainerLike = requires (T t)
   std::end(t);
 };
 
-// Я не знаю зачем это и что здесь писать, выглядит как какие-то велосипеды.
+// Я не понимаю зачем это всё и что здесь писать, выглядит как какие-то велосипеды.
 template <typename T>
 concept BookIterator = true;
 
