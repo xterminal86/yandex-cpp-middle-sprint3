@@ -3,8 +3,10 @@
 
 #include "book_database.hpp"
 #include "statsistics.hpp"
+#include "filters.hpp"
 
 using namespace bookdb;
+using namespace std::string_view_literals;
 
 // =============================================================================
 
@@ -78,6 +80,87 @@ R"({
   "ReadCount" : 190
 })";
     EXPECT_EQ(expected, actual);
+  }
+}
+
+// =============================================================================
+
+TEST(BookDatabase, Empty)
+{
+  BookDatabase db;
+
+  {
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        GenreIs(Genre::SciFi)
+      )
+    );
+    EXPECT_TRUE(filtered.empty());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        AuthorIs("George Orwell")
+      )
+    );
+    EXPECT_TRUE(filtered.empty());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        AuthorIs("Сергей Пахомов")
+      )
+    );
+    EXPECT_TRUE(filtered.empty());
+  }
+}
+
+// =============================================================================
+
+TEST(BookDatabase, Filters)
+{
+  BookDatabase db;
+  FillDatabase(db);
+
+  {
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        GenreIs(Genre::SciFi)
+      )
+    );
+    EXPECT_EQ(2, filtered.size());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        AuthorIs("George Orwell")
+      )
+    );
+    EXPECT_EQ(2, filtered.size());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        AuthorIs("Сергей Пахомов")
+      )
+    );
+    EXPECT_TRUE(filtered.empty());
   }
 }
 

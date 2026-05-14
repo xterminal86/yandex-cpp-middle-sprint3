@@ -34,7 +34,10 @@ int main() {
     db.PushBack(Book{"Jane Eyre", "Charlotte Brontë", 1847, Genre::Fiction, 4.6, 110});
     db.PushBack(Book{"The Hobbit", "J.R.R. Tolkien", 1937, Genre::Fiction, 4.9, 203});
     db.PushBack(Book{"Lord of the Flies", "William Golding", 1954, Genre::Fiction, 4.2, 89});
+
     std::print("0) {}\n{}\n", db, line);
+
+    db.Dump();
 
     // -------------------------------------------------------------------------
 
@@ -63,16 +66,22 @@ int main() {
     // -------------------------------------------------------------------------
 
     // Filters
-    auto filtered = filterBooks(db.begin(),
-                                db.end(),
-                                all_of(YearBetween(1900, 1999),
-                                       RatingAbove(4.5)));
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      all_of(
+        YearBetween(1900, 1999),
+        RatingAbove(4.5)
+      )
+    );
     std::print("6) Books from the 20th century with rating ≥ 4.5:\n");
     std::for_each(filtered.cbegin(),
                   filtered.cend(),
                   [](const auto &v)
                   {
-                    std::print("{}\n", v.get());
+                    // For some reason addresses don't match...
+                    // Though it seems to be working.
+                    std::print("{} -> @{}\n", v.get(), (void*)&v.get());
                   });
     std::println("{}", line);
 

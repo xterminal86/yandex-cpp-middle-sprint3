@@ -32,6 +32,14 @@ constexpr auto GenreIs(Genre genre)
   };
 }
 
+constexpr auto AuthorIs(const std::string& name)
+{
+  return [&name](const Book& b)
+  {
+    return b.Author == name;
+  };
+}
+
 using FilteredBooks = std::vector<std::reference_wrapper<Book>>;
 
 template <BookIterator It, BookSentinel<It> Sent, BookPredicate Pred>

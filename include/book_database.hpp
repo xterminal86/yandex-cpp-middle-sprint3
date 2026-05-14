@@ -16,7 +16,7 @@ template <BookContainerLike BookContainer = std::vector<Book>>
 class BookDatabase {
 public:
     // Type aliases
-    using AuthorContainer = std::unordered_set<std::string>;
+    using UOSS = std::unordered_set<std::string>;
 
     BookDatabase() = default;
 
@@ -30,8 +30,8 @@ public:
     }
 
     // Standard container interface methods
-    bool empty() const { return books_.empty(); }
-    size_t size() const { return books_.size(); }
+    bool empty()  const { return books_.empty(); }
+    size_t size() const { return books_.size();  }
 
     Book& operator[](const size_t index) { return books_[index]; }
 
@@ -47,17 +47,25 @@ public:
 
     void PushBack(const Book& book)
     {
-      // What's the point if author should already be set in Book object?
-      authors_.insert(std::string(book.Author.data(), book.Author.size()));
+      titles_.insert(
+        std::string(book.Title.data(), book.Title.size())
+      );
+      authors_.insert(
+        std::string(book.Author.data(), book.Author.size())
+      );
       books_.push_back(book);
     }
 
     void PushBack(Book&& book)
     {
-      auto p = authors_.insert(
+      auto p1 = authors_.insert(
         std::string(book.Author.data(), book.Author.size())
       );
-      book.Author = *p.first;
+      auto p2 = titles_.insert(
+        std::string(book.Title.data(), book.Title.size())
+      );
+      book.Author = *p1.first;
+      book.Title  = *p2.first;
       books_.push_back(std::move(book));
     }
 
@@ -71,19 +79,63 @@ public:
       return books_;
     }
 
-    const AuthorContainer& GetAuthors() const
+    const UOSS& GetAuthors() const
     {
       return authors_;
     }
 
-    const AuthorContainer& GetAuthors()
+    const UOSS& GetAuthors()
     {
       return authors_;
+    }
+
+    void Dump()
+    {
+      static const std::string ruler(80, '=');
+
+      // -----------------------------------------------------------------------
+      auto _Printer =
+      [](const std::string& header, const UOSS& container)
+      {
+        std::println("{}:", header);
+
+        for (const std::string& data : container)
+        {
+          std::println("@{} -> '{}'", (void*)data.data(), data);
+        }
+      };
+      // -----------------------------------------------------------------------
+
+      std::println("");
+      std::println("---------- BookDatabase dump start ----------");
+      std::println("");
+
+      _Printer("Authors", authors_);
+      std::println("");
+      _Printer("Titles", titles_);
+
+      std::println("");
+
+      std::println("Contents:");
+      for (const Book& b : books_)
+      {
+        std::println("@{} -> {{ @{} -> '{}', @{} -> '{}', ... }}",
+                     (void*)&b,
+                     (void*)b.Author.data(),
+                     b.Author,
+                     (void*)b.Title.data(),
+                     b.Title);
+      }
+
+      std::println("");
+      std::println("---------- BookDatabase dump end ------------");
+      std::println("");
     }
 
 private:
     BookContainer books_;
-    AuthorContainer authors_;
+    UOSS authors_;
+    UOSS titles_;
 };
 
 }  // namespace bookdb

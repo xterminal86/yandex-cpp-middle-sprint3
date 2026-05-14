@@ -60,7 +60,7 @@ struct Book {
   // string_view для экономии памяти, чтобы ссылаться на оригинальную строку,
   // хранящуюся в другом контейнере.
   std::string_view Author;
-  std::string Title;
+  std::string_view Title;
 
   size_t Year = 1970;
   Genre Genre_ = Genre::Unknown;
@@ -69,7 +69,7 @@ struct Book {
 
   // NOTE: not actually a constexpr - falls back to runtime
   // because of std::string.
-  constexpr Book(const std::string& title,
+  constexpr Book(const std::string_view title,
                  const std::string_view author,
                  const size_t year,
                  const Genre genre,
@@ -82,7 +82,7 @@ struct Book {
       Rating(rating),
       ReadCount(readCount) {}
 
-  constexpr Book(const std::string& title,
+  constexpr Book(const std::string_view title,
                  const std::string_view author,
                  const size_t year,
                  const std::string_view genre,
