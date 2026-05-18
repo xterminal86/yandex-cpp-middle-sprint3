@@ -67,6 +67,8 @@ struct Book {
   double Rating = 0.0;
   size_t ReadCount = 0;
 
+  Book() = default;
+
   // We need exactly 'constexpr', not 'consteval' here if we plan to
   // implement / use EmplaceBack(), because it only works in runtime, which is
   // kinda doesn't make any sense.

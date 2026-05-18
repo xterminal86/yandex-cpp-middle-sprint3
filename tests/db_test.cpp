@@ -176,11 +176,7 @@ TEST(BookDatabase, MemoryEfficiency)
     auto& intlCont = db.GetInternalContainer();
     for (const Book& b : intlCont)
     {
-      // Can't do this because Book doesn't have default ctor in our
-      // implementation.
-      //expectedObjectsByAddr[(void*)&b] = b;
-
-      expectedObjectsByAddr.emplace((void*)&b, b);
+      expectedObjectsByAddr[(void*)&b] = b;
     }
 
     for (auto& kvp : expectedObjectsByAddr)
@@ -403,5 +399,12 @@ TEST(Statistics, GetTopN)
     FillDatabase(db);
     auto out = getTopNBy(db, 20, comp::GreaterByRating{});
     ASSERT_EQ(10, out.size());
+  }
+  // ---------------------------------------------------------------------------
+  // Division by zero.
+  {
+    BookDatabase db;
+    double out = calculateAverageRating(db);
+    EXPECT_DOUBLE_EQ(0, out);
   }
 }

@@ -71,7 +71,9 @@ GenreRatings calculateGenreRatings(It first, Sent last)
 template <BookContainerLike T>
 double calculateAverageRating(const BookDatabase<T>& books)
 {
-  return std::accumulate(
+  return books.empty()
+    ? 0.0
+    : std::accumulate(
     books.cbegin(),
     books.cend(),
     0.0,
