@@ -13,6 +13,13 @@ endif()
 add_compile_options(-Wfatal-errors)
 add_compile_options(-Werror=return-type)
 
+option(DEBUG_BUILD "Compile in additional debugging stuff" OFF)
+
+if (DEBUG_BUILD)
+  message("Debug build is on")
+  add_definitions(-DDEBUG_BUILD)
+endif()
+
 # Ищем необходимые библиотеки
 find_package(GTest REQUIRED)
 

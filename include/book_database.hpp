@@ -16,6 +16,21 @@ template <BookContainerLike BookContainer = std::vector<Book>>
 class BookDatabase {
 public:
     // Type aliases
+
+    //
+    // For Container requirement compliance.
+    // (https://en.cppreference.com/cpp/named_req/Container)
+    // These are mostly needed for template black magic (e.g. see concepts.hpp).
+    //
+    using value_type      = Book;
+    using reference       = Book&;
+    using const_reference = const Book&;
+    using iterator        = BookContainer::iterator;
+    using const_iterator  = BookContainer::const_iterator;
+    using difference_type = BookContainer::difference_type;
+    using size_type       = BookContainer::size_type;
+
+    // Custom.
     using UOSS = std::unordered_set<std::string>;
 
     BookDatabase() = default;
@@ -25,9 +40,10 @@ public:
     {
       for (Book& b : books_)
       {
-        auto it1 = authors_.insert(std::string(b.Author.data(), b.Author.size()));
+        // Leverage std::string(const char* data, size_t size) ctor.
+        auto it1 = authors_.emplace(b.Author.data(), b.Author.size());
         b.Author = *it1.first;
-        auto it2 = titles_.insert(std::string(b.Title.data(), b.Title.size()));
+        auto it2 = titles_.emplace(b.Title.data(), b.Title.size());
         b.Title = *it2.first;
       }
     }
@@ -39,15 +55,15 @@ public:
     }
 
     // Standard container interface methods
-    bool empty()  const { return books_.empty(); }
-    size_t size() const { return books_.size();  }
+    bool empty()     const { return books_.empty(); }
+    size_type size() const { return books_.size();  }
 
     Book& operator[](const size_t index) { return books_[index]; }
 
-    auto begin()        { return books_.begin();  }
-    auto end()          { return books_.end();    }
-    auto cbegin() const { return books_.cbegin(); }
-    auto cend()   const { return books_.cend();   }
+    iterator begin()              { return books_.begin();  }
+    iterator end()                { return books_.end();    }
+    const_iterator cbegin() const { return books_.cbegin(); }
+    const_iterator cend()   const { return books_.cend();   }
 
     template <typename... Args>
     requires std::constructible_from<Book, Args...>
@@ -66,13 +82,22 @@ public:
 
     void PushBack(const Book& book)
     {
-      titles_.insert(
+      auto it1 = titles_.insert(
         std::string(book.Title.data(), book.Title.size())
       );
-      authors_.insert(
+      auto it2 = authors_.insert(
         std::string(book.Author.data(), book.Author.size())
       );
-      books_.push_back(book);
+      books_.push_back(
+        Book(
+          *it1.first,
+          *it2.first,
+          book.Year,
+          book.Genre_,
+          book.Rating,
+          book.ReadCount
+        )
+      );
     }
 
     void PushBack(Book&& book)
@@ -150,6 +175,13 @@ public:
       std::println("---------- BookDatabase dump end ------------");
       std::println("");
     }
+
+#ifdef DEBUG_BUILD
+    BookContainer& GetInternalContainer()
+    {
+      return books_;
+    }
+#endif
 
 private:
     BookContainer books_;

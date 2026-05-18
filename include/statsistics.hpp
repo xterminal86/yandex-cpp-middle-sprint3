@@ -9,6 +9,7 @@
 #include <random>
 
 #include "book_database.hpp"
+#include "comparators.hpp"
 
 #include <print>
 #include <flat_map>
@@ -116,24 +117,24 @@ auto getTopNBy(BookDatabase<T> &cont, size_t n, Comparator comp)
 {
   std::vector<Book> out;
 
-  std::sort(
-    cont.begin(),
-    cont.end(),
-    [](const Book& a, const Book& b)
-    {
-      return a.Rating >= b.Rating;
-    }
-  );
+  if (n == 0)
+  {
+    return out;
+  }
+
+  // Since we're modifying container in-place we can't use partial sort because
+  // it will produce UB if you try to partial sort full range.
+  std::sort(cont.begin(), cont.end(), comp);
 
   size_t counter = 0;
   for (auto& i : cont)
   {
-    out.push_back(i);
-    counter++;
     if (counter >= n)
     {
       break;
     }
+    out.push_back(i);
+    counter++;
   }
 
   return out;

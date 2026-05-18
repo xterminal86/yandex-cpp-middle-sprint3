@@ -36,6 +36,14 @@ struct LessByRating
   }
 };
 
+struct GreaterByRating
+{
+  bool operator()(const bookdb::Book& a, const bookdb::Book& b) const
+  {
+    return a.Rating >= b.Rating;
+  }
+};
+
 struct LessByPopularity
 {
   bool operator()(const bookdb::Book& a, const bookdb::Book& b) const

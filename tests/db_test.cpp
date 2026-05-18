@@ -87,33 +87,133 @@ TEST(BookDatabase, EmplaceBack)
 
 TEST(BookDatabase, MemoryEfficiency)
 {
-  BookDatabase db;
-  db.EmplaceBack("Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143);
-  db.EmplaceBack("1984", "George Orwell", 1949, Genre::SciFi, 4., 190);
+  {
+    BookDatabase db;
+    db.EmplaceBack("Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143);
+    db.EmplaceBack("1984", "George Orwell", 1949, Genre::SciFi, 4., 190);
 
-  auto& authors = db.GetAuthors();
-  auto it1 = authors.find("George Orwell");
-  ASSERT_TRUE(it1 != authors.end());
+    auto& authors = db.GetAuthors();
+    auto it1 = authors.find("George Orwell");
+    ASSERT_TRUE(it1 != authors.end());
 
-  // iterator -> holder object -> contents
-  const void* authorPtr = (const void*)(*it1).data();
+    // iterator -> holder object -> contents
+    const void* authorPtr = (const void*)(*it1).data();
 
-  std::span<const Book> s = db.GetBooks();
-  ASSERT_EQ(2, s.size());
+    std::span<const Book> s = db.GetBooks();
+    ASSERT_EQ(2, s.size());
 
-  const void* p1 = (const void*)s[0].Author.data();
-  const void* p2 = (const void*)s[1].Author.data();
+    const void* p1 = (const void*)s[0].Author.data();
+    const void* p2 = (const void*)s[1].Author.data();
 
-  // This would signify that Author in books_ container actually points to the
-  // same string in authors_ unordered set and is not a separate string or
-  // anything.
-  EXPECT_EQ(authorPtr, p1);
-  EXPECT_EQ(authorPtr, p2);
+    // This would signify that Author in books_ container actually points to the
+    // same string in authors_ unordered set and is not a separate string or
+    // anything.
+    EXPECT_EQ(authorPtr, p1);
+    EXPECT_EQ(authorPtr, p2);
 
-  // We could repeat the same thing for one of the titles, but since it's
-  // implemented exactly the same as authors_ in code, and we don't have
-  // GetTitles() method, and we're kinda don't wanna implement it since it
-  // wasn't "part of the original deal", so just trust me bro. ;-)
+    // We could repeat the same thing for one of the titles, but since it's
+    // implemented exactly the same as authors_ in code, and we don't have
+    // GetTitles() method, and we're kinda don't wanna implement it since it
+    // wasn't "part of the original deal", so just trust me bro. ;-)
+  }
+  //----------------------------------------------------------------------------
+  {
+    BookDatabase db;
+    //
+    // To prevent compiler optimizing strings and stuff.
+    // If we fill database using this syntax:
+    // db.PushBack({ "Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143 })"
+    // then tests will pass on BookDatabase::books_.push_back(book).
+    // But we need to make sure that Author and Title are created once and
+    // elements in books_ reference them.
+    //
+    Book b = { "Animal Farm", "George Orwell", 1945, Genre::Fiction, 4.4, 143 };
+    db.PushBack(b);
+    b = { "1984", "George Orwell", 1949, Genre::SciFi, 4., 190 };
+    db.PushBack(b);
+
+    auto& authors = db.GetAuthors();
+    auto it1 = authors.find("George Orwell");
+    ASSERT_TRUE(it1 != authors.end());
+
+    // iterator -> holder object -> contents
+    const void* authorPtr = (const void*)(*it1).data();
+
+    std::span<const Book> s = db.GetBooks();
+    ASSERT_EQ(2, s.size());
+
+    const void* p1 = (const void*)s[0].Author.data();
+    const void* p2 = (const void*)s[1].Author.data();
+
+    // This would signify that Author in books_ container actually points to the
+    // same string in authors_ unordered set and is not a separate string or
+    // anything.
+    EXPECT_EQ(authorPtr, p1);
+    EXPECT_EQ(authorPtr, p2);
+
+    // We could repeat the same thing for one of the titles, but since it's
+    // implemented exactly the same as authors_ in code, and we don't have
+    // GetTitles() method, and we're kinda don't wanna implement it since it
+    // wasn't "part of the original deal", so just trust me bro. ;-)
+  }
+  // ---------------------------------------------------------------------------
+#ifdef DEBUG_BUILD
+  // Check that filterBooks() returns references to objects inside BookDatabase
+  // container and not new ones.
+  {
+    BookDatabase db;
+    FillDatabase(db);
+    auto filtered = filterBooks(
+      db.begin(),
+      db.end(),
+      any_of(
+        YearBetween(0, 9999)
+      )
+    );
+    ASSERT_EQ(10, filtered.size());
+
+    std::unordered_map<void*, Book> expectedObjectsByAddr;
+    auto& intlCont = db.GetInternalContainer();
+    for (const Book& b : intlCont)
+    {
+      // Can't do this because Book doesn't have default ctor in our
+      // implementation.
+      //expectedObjectsByAddr[(void*)&b] = b;
+
+      expectedObjectsByAddr.emplace((void*)&b, b);
+    }
+
+    for (auto& kvp : expectedObjectsByAddr)
+    {
+      bool found = false;
+      void* addr = kvp.first;
+      const Book& actualObj = kvp.second;
+      Book* refObj = nullptr;
+      for (auto& i : filtered)
+      {
+        if ((void*)&(i.get()) == addr)
+        {
+          found = true;
+          refObj = &(i.get());
+          break;
+        }
+      }
+      if (not found)
+      {
+        std::println("Address {} not found in BookDatabase container", addr);
+        db.Dump();
+      }
+      ASSERT_TRUE(found);
+      ASSERT_TRUE(refObj != nullptr);
+      EXPECT_EQ(actualObj.Author,    refObj->Author);
+      EXPECT_EQ(actualObj.Title,     refObj->Title);
+      EXPECT_EQ(actualObj.Year,      refObj->Year);
+      EXPECT_EQ(actualObj.Genre_,    refObj->Genre_);
+      EXPECT_EQ(actualObj.Rating,    refObj->Rating);
+      EXPECT_EQ(actualObj.ReadCount, refObj->ReadCount);
+    }
+  }
+#endif
 }
 
 // =============================================================================
@@ -269,5 +369,39 @@ TEST(Statistics, SampleRandom)
     FillDatabase(db);
     auto out = sampleRandomBooks(db, 100);
     EXPECT_EQ(0, out.size());
+  }
+}
+
+// =============================================================================
+
+TEST(Statistics, GetTopN)
+{
+  {
+    BookDatabase db;
+    FillDatabase(db);
+    auto out = getTopNBy(db, 0, comp::GreaterByRating{});
+    ASSERT_EQ(0, out.size());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    BookDatabase db;
+    FillDatabase(db);
+    auto out = getTopNBy(db, 1, comp::LessByRating{});
+    ASSERT_EQ(1, out.size());
+    EXPECT_EQ("1984"sv, out[0].Title);
+  }
+  // ---------------------------------------------------------------------------
+  {
+    BookDatabase db;
+    FillDatabase(db);
+    auto out = getTopNBy(db, 10, comp::GreaterByRating{});
+    ASSERT_EQ(10, out.size());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    BookDatabase db;
+    FillDatabase(db);
+    auto out = getTopNBy(db, 20, comp::GreaterByRating{});
+    ASSERT_EQ(10, out.size());
   }
 }

@@ -10,6 +10,7 @@ namespace bookdb {
 template <typename T>
 concept BookContainerLike = requires (T t)
 {
+  std::is_same_v<typename T::value_type, Book>;
   std::begin(t);
   std::end(t);
 };
