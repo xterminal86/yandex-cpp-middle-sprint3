@@ -376,7 +376,7 @@ TEST(Statistics, GetTopN)
     BookDatabase db;
     FillDatabase(db);
     auto out = getTopNBy(db, 0, comp::GreaterByRating{});
-    ASSERT_EQ(0, out.size());
+    EXPECT_EQ(0, out.size());
   }
   // ---------------------------------------------------------------------------
   {
@@ -391,20 +391,36 @@ TEST(Statistics, GetTopN)
     BookDatabase db;
     FillDatabase(db);
     auto out = getTopNBy(db, 10, comp::GreaterByRating{});
-    ASSERT_EQ(10, out.size());
+    EXPECT_EQ(10, out.size());
   }
   // ---------------------------------------------------------------------------
   {
     BookDatabase db;
     FillDatabase(db);
     auto out = getTopNBy(db, 20, comp::GreaterByRating{});
-    ASSERT_EQ(10, out.size());
+    EXPECT_EQ(10, out.size());
+  }
+  // ---------------------------------------------------------------------------
+  {
+    BookDatabase db;
+    FillDatabase(db);
+    double rating = calculateAverageRating(db);
+    EXPECT_DOUBLE_EQ(4.49, rating);
+  }
+  // ---------------------------------------------------------------------------
+  {
+    BookDatabase db;
+    FillDatabase(db);
+    auto res = calculateGenreRatings(db.begin(), db.end());
+    EXPECT_DOUBLE_EQ(4.55, res[Genre::Fiction]);
+    EXPECT_DOUBLE_EQ(4.25, res[Genre::SciFi]);
   }
   // ---------------------------------------------------------------------------
   // Division by zero.
   {
     BookDatabase db;
     double out = calculateAverageRating(db);
-    EXPECT_DOUBLE_EQ(0, out);
+    EXPECT_DOUBLE_EQ(0.0, out);
   }
 }
+

@@ -18,12 +18,13 @@ namespace bookdb {
 
 // =============================================================================
 
-using Histogram = std::flat_map<std::string, size_t>;
+template <typename Comparator = TransparentStringLess>
+using Histogram = std::flat_map<std::string, size_t, Comparator>;
 
 template <BookContainerLike T, typename Comparator = TransparentStringLess>
-Histogram buildAuthorHistogramFlat(const BookDatabase<T>& cont, Comparator comp = {})
+Histogram<Comparator> buildAuthorHistogramFlat(const BookDatabase<T>& cont, Comparator comp = {})
 {
-  Histogram stats;
+  Histogram<Comparator> stats;
 
   std::span<const Book> s = cont.GetBooks();
 
@@ -148,10 +149,12 @@ auto getTopNBy(BookDatabase<T> &cont, size_t n, Comparator comp)
 
 namespace std {
 
+using H = std::flat_map<std::string, size_t, bookdb::TransparentStringLess>;
+
 template <>
-struct formatter<bookdb::Histogram> {
+struct formatter<H> {
     template <typename FormatContext>
-    auto format(const bookdb::Histogram& h, FormatContext& fc) const
+    auto format(const H& h, FormatContext& fc) const
     {
       format_to(fc.out(), "{{\n");
 
