@@ -7,8 +7,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    # Не больше трёх ошибок за раз
-    add_compile_options(-fmax-errors=3)
+    add_compile_options(-fmax-errors=1)
+endif()
+
+add_compile_options(-Wfatal-errors)
+add_compile_options(-Werror=return-type)
+
+option(DEBUG_BUILD "Compile in additional debugging stuff" OFF)
+
+if (DEBUG_BUILD)
+  message("Debug build is on")
+  add_definitions(-DDEBUG_BUILD)
 endif()
 
 # Ищем необходимые библиотеки
